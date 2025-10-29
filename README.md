@@ -1,4 +1,4 @@
-# ml-fairness-thesis
+# Fairness Encoding in Logical Tensor Networks (FEL)
 
 debiasing tool for feature-based binary classification task
 
