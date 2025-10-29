@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 import warnings
+from tqdm import trange
 
 logging.basicConfig(level=logging.ERROR)
 sys.path.append("../")
@@ -129,7 +130,7 @@ def main(dataset, feature, implies, p_mean, aggregator_deviation):
             hidden_layer_sizes=wandb_hp['hidden_layer_sizes'],
             fuzzy_ops=fuzzy_ops,
             sensitive_feature_index=protected_attributes[wandb_hp['sensitive_feature']]['index'],
-            config_file='/workspaces/ml-fairness-thesis/src/KnowledgeBaseAxioms.json'
+            config_file='./src/KnowledgeBaseAxioms.json'
         )
 
         wandb_hp['learning_rate'] = 0.001
@@ -154,7 +155,8 @@ def main(dataset, feature, implies, p_mean, aggregator_deviation):
 
         # Training loop
         with wandb.init(**wandb_init) as run:
-            for epoch in range(wandb_hp['epochs']):
+            pbar = trange(wandb_hp['epochs'], desc="Training", ncols=100)
+            for epoch in pbar:
 
                 with tf.GradientTape() as tape:
                     loss = 1. - kb.train_step()  # type: ignore
@@ -165,6 +167,13 @@ def main(dataset, feature, implies, p_mean, aggregator_deviation):
                     run.log({
                         'epochs': epoch+1,
                         **kb.get_logs()
+                    })
+                    logs = kb.get_logs()
+                    train_acc = logs.get('train_classification_metrics', {}).get('accuracy')
+                    test_acc = logs.get('test_classification_metrics', {}).get('accuracy')
+                    pbar.set_postfix({
+                    'train_acc': f"{train_acc:.3f}",
+                    'test_acc':  f"{test_acc:.3f}"
                     })
 
             run.finish()
