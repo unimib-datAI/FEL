@@ -31,18 +31,6 @@ def get_dataset(df, target_variable,  protected_attribute):
     return df, X_train, X_test, y_train, y_test
 
 
-def build_predicted_attributes_dict(dataset_df, sensitive_feature, privilieged_value, unprivileged_value):
-    protected_attributes = {
-        sensitive_feature: {
-            'name': sensitive_feature,
-            'index': dataset_df.columns.get_loc(sensitive_feature),
-            'privileged': privilieged_value,
-            'unprivileged': unprivileged_value,
-            'maps': {}  # mi sa che non serve
-        }
-    }
-    return protected_attributes
-
 def main(args):
     with open(args.config, 'r') as f:
         conf =  yaml.safe_load(f)
