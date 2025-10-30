@@ -1,6 +1,5 @@
 # Fairness Encoding in Logical Tensor Networks (FEL)
 
-debiasing tool for feature-based binary classification task
 FEL is a debiasing framework for feature-based binary classification tasks.
 
 ## Overview:
