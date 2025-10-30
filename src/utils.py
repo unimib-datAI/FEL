@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 import tensorflow as tf
+import ltn
 from fairlearn.metrics import demographic_parity_ratio
 from ltn import Wrapper_Connective, Wrapper_Quantifier, fuzzy_ops
 from ltn.core import Predicate, Variable
@@ -105,6 +106,24 @@ def StandardScaleData_ExcludingFeature(x_train, x_test, index):
     test = np.hstack([test_before, test_col[:, None], test_after])
 
     return train, test, scaler
+
+
+
+def get_implies_operator(implies):
+    if implies == 'KleeneDienes':
+        impliesOperator = ltn.fuzzy_ops.Implies_KleeneDienes()
+    elif implies == 'Godel':
+        impliesOperator = ltn.fuzzy_ops.Implies_Godel()
+    elif implies == 'Reichenbach':
+        impliesOperator = ltn.fuzzy_ops.Implies_Reichenbach()
+    elif implies == 'Goguen':
+        impliesOperator = ltn.fuzzy_ops.Implies_Goguen()
+    elif implies == 'Luk':
+        impliesOperator = ltn.fuzzy_ops.Implies_Luk()
+    else:
+        raise Exception(f'Implies operator {implies} undefined')
+    return impliesOperator
+
 
 
 class Oracle(object):
