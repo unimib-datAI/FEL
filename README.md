@@ -44,7 +44,7 @@ $ python src/main.py --config ./src/config.yaml --data-path ./data/my_dataset.cs
 ```
 
 ## **Configuration Guide**
-
+There quired YAML file need to specify the following parameters:
 ### Data Configuration
 - **target_variable**: Column name containing binary outcomes
 - **sensitive_feature**: Column name of the protected attribute
@@ -65,7 +65,7 @@ $ python src/main.py --config ./src/config.yaml --data-path ./data/my_dataset.cs
 ### Training Configuration
 - **epochs**: Number of training iterations
 
-### Understanding "Positive" and "Negative" Labels
+## Understanding "Positive" and "Negative" Labels
 
 The choice of positive/negative labels is crucial:
 - **Positive**: The outcome you want to balance fairly across groups
@@ -74,17 +74,12 @@ The choice of positive/negative labels is crucial:
 - **Negative**: The alternative outcome
   - Not directly balanced by fairness constraints
 
-#### Examples:
-1. Loan Approval:
-   - positive: 1 (approved)
-   - negative: 0 (denied)
-   - Fair: approval rates should be similar across groups
 
-2. Disease Detection:
-   - positive: "has_disease"
-   - negative: "no_disease"
-   - Fair: detection rates should be similar across groups
+Examples:
 
+- Loan approval: positive = 1 (approved), negative = 0 (denied) → approval rates should be similar across groups.
+
+- Disease detection: positive = “has_disease”, negative = “no_disease” → detection rates should be comparable across groups.
 
 ## **License**
 
