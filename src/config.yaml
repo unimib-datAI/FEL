@@ -1,0 +1,18 @@
+data:
+  target_variable: "two_year_recid" # Your target column name
+  sensitive_feature: "sex"          # Protected attribute column
+  labels:
+    positive: 1   # Value representing the outcome to balance fairly
+    negative: 0   # Other possible value
+  protected_values:
+    privileged: 1 # Value marking privileged group
+    unprivileged: 0 # Value marking unprivileged group
+
+model:
+  hidden_layer_sizes: [50, 50]
+  implies: "Godel"  # Options: KleeneDienes, Godel, Reichenbach, Goguen, Luk
+  p_mean: 1
+  aggregator_deviation: 2
+
+training:
+  epochs: 5000

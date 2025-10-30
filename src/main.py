@@ -6,24 +6,19 @@ from sklearn.model_selection import train_test_split
 from utils import StandardScaleData_ExcludingFeature, LTNOps, set_seed, get_implies_operator
 import KnowledgeBase
 import tensorflow as tf
-from tqdm import tqdm
 import numpy as np
 import pandas as pd
 from tqdm import trange
+import yaml
+import argparse
 
 set_seed(42)
 
 
-# deve ritornare X e Y
-def read_dataset(csv, target_var):
-    df = pd.read_csv(csv)
-    Y = df[target_var].to_numpy()
-    X = df.drop(columns=[target_var]).to_numpy()
-    return df, X, Y
+def get_dataset(df, target_variable,  protected_attribute):
+    Y = df[target_variable].to_numpy()
+    X = df.drop(columns=[target_variable]).to_numpy()
 
-
-# qui server solo X, Y, e la sensitive feature
-def get_training_dataset(X, Y, protected_attributes):
     X_train, X_test, y_train, y_test = train_test_split(
         X, 
         np.squeeze(Y),
@@ -31,9 +26,9 @@ def get_training_dataset(X, Y, protected_attributes):
         stratify=np.squeeze(Y))
 
     X_train, X_test, _ = StandardScaleData_ExcludingFeature(
-            X_train, X_test, protected_attributes['index'])
+            X_train, X_test, protected_attribute['index'])
     
-    return X_train, X_test, y_train, y_test
+    return df, X_train, X_test, y_train, y_test
 
 
 def build_predicted_attributes_dict(dataset_df, sensitive_feature, privilieged_value, unprivileged_value):
@@ -48,56 +43,43 @@ def build_predicted_attributes_dict(dataset_df, sensitive_feature, privilieged_v
     }
     return protected_attributes
 
-def main():
-    dataset_path = "./src/compas.csv"
-    sensitive_feature = 'sex'
-    privilieged_value_for_sensitive_feature= 1
-    unprivileged_value_for_sensitive_feature = 0
-    target_variable  = "two_year_recid"
-    positive_label = 1  # The positive value is what the model should try to balance fairly across groups.
-    negative_label = 0  # The negative value is not directly balanced in fairness metrics.
-    implies = 'Godel'
-    p_mean = 1
-    aggregator_deviation = 2
-    hidden_layer_sizes=(50, 50)
-    epochs = 5000
-    
+def main(args):
+    with open(args.config, 'r') as f:
+        conf =  yaml.safe_load(f)
 
-    df, X, Y = read_dataset(dataset_path, target_variable)
-    impliesOperator = get_implies_operator(implies)
+    df = pd.read_csv(args.dataset)
 
-
-    # con l'input utente dobbiamo riuscire a creare questo dizionario
-    protected_attributes = {
-        'name': sensitive_feature,
-        'index': df.columns.get_loc(sensitive_feature),
-        'privileged': privilieged_value_for_sensitive_feature,
-        'unprivileged': unprivileged_value_for_sensitive_feature
+    protected_attribute = {
+        'name': conf["data"]["sensitive_feature"],
+        'index': df.columns.get_loc(conf["data"]["sensitive_feature"]),
+        'privileged': conf["data"]["protected_values"]["privileged"],
+        'unprivileged': conf["data"]["protected_values"]["unprivileged"]
     }
 
     label_map = {
-        "positive": positive_label,
-        "negative": negative_label
+        "positive": conf["data"]["labels"]["positive"],
+        "negative": conf["data"]["labels"]["negative"]
     }
 
 
-    X_train, X_test, y_train, y_test  = get_training_dataset(X, Y, protected_attributes)
+    df, X_train, X_test, y_train, y_test  = get_dataset(df, conf["data"]["target_variable"],  protected_attribute)
+    impliesOperator = get_implies_operator(conf["model"]["implies"])
 
-    ltnOps = LTNOps(impliesOperator, p_mean, aggregator_deviation)
+    ltnOps = LTNOps(impliesOperator, conf["model"]["p_mean"], conf["model"]["aggregator_deviation"])
     kb = KnowledgeBase.KnowledgeBase(
             X_train, X_test,
             y_train, y_test,
             label_map,
-            protected_attributes['privileged'],
-            protected_attributes['unprivileged'],
-            hidden_layer_sizes= hidden_layer_sizes,
+            protected_attribute['privileged'],
+            protected_attribute['unprivileged'],
+            hidden_layer_sizes= conf["model"]["hidden_layer_sizes"],
             fuzzy_ops=ltnOps,
-            sensitive_feature_index=protected_attributes['index'],
+            sensitive_feature_index=protected_attribute['index'],
             config_file='./src/KnowledgeBaseAxioms.json'
         )
 
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
-    pbar = trange(epochs, desc="Training", ncols=100)
+    pbar = trange(conf["training"]["epochs"], desc="Training", ncols=100)
     for epoch in pbar:
         with tf.GradientTape() as tape:
             loss = 1. - kb.train_step()  # type: ignore
@@ -115,4 +97,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', default='./src/config.yaml', help='Path to config file')
+    parser.add_argument('--dataset', default='./src/compas.csv', help='Optional override for dataset CSV path')
+    args = parser.parse_args()
+    main(args)
