@@ -1,7 +1,6 @@
 import sys
 
 sys.path.append("../")
-from aif360.datasets import AdultDataset, GermanDataset, CompasDataset
 from sklearn.model_selection import train_test_split
 from utils import StandardScaleData_ExcludingFeature, LTNOps, set_seed, get_implies_operator
 import KnowledgeBase
@@ -11,11 +10,39 @@ import pandas as pd
 from tqdm import trange
 import yaml
 import argparse
+import os
+import numpy as np
+import tensorflow as tf
 
 set_seed(42)
 
 
-def get_dataset(df, target_variable,  protected_attribute):
+def save_kb_weights(kb, filepath: str):
+    os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
+    weights = {f"var_{i}": v.numpy() for i, v in enumerate(kb.trainable_variables)}
+    np.savez(filepath, **weights)
+
+
+def load_kb_weights(kb, filepath: str):
+    data = np.load(filepath, allow_pickle=True)
+    vars = kb.trainable_variables
+    for i, v in enumerate(vars):
+        key = f"var_{i}"
+        if key not in data:
+            raise KeyError(f"Missing weight '{key}' in {filepath}")
+        v.assign(data[key])
+    return kb
+
+
+
+def simple_inference(kb, X, n=5):
+    preds = kb._oracle.predict(X) 
+    preds = np.asarray(preds)
+    print("Sample predictions:", preds[:n])
+    return preds
+
+
+def prepare_dataset(df, target_variable,  protected_attribute):
     Y = df[target_variable].to_numpy()
     X = df.drop(columns=[target_variable]).to_numpy()
 
@@ -50,7 +77,7 @@ def main(args):
     }
 
 
-    df, X_train, X_test, y_train, y_test  = get_dataset(df, conf["data"]["target_variable"],  protected_attribute)
+    df, X_train, X_test, y_train, y_test  = prepare_dataset(df, conf["data"]["target_variable"],  protected_attribute)
     impliesOperator = get_implies_operator(conf["model"]["implies"])
 
     ltnOps = LTNOps(impliesOperator, conf["model"]["p_mean"], conf["model"]["aggregator_deviation"])
@@ -82,7 +109,10 @@ def main(args):
             'train_acc': f"{train_acc:.3f}",
             'test_acc':  f"{test_acc:.3f}"
             })
-
+    
+    save_kb_weights(kb, "models/kb.npz")
+    kb = load_kb_weights(kb, "models/kb.npz")
+    simple_inference(kb, X_test)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
