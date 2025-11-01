@@ -108,6 +108,26 @@ def StandardScaleData_ExcludingFeature(x_train, x_test, index):
     return train, test, scaler
 
 
+def StandardScaleData_simple(X):
+    scaler = StandardScaler().fit(X)
+    x_train_scaled = scaler.transform(X)
+    return x_train_scaled, scaler
+
+def StandardScaleData_ExcludingFeature_simple(X, index):
+    train_before = X[:, 0:index]
+    train_col = X[:, index]
+    train_after = X[:, index+1:]
+    train = np.hstack([train_before, train_after])
+
+    train, scaler = StandardScaleData_simple(train)
+
+    train_before = train[:, 0:index]
+    train_after = train[:, index:]
+    train = np.hstack([train_before, train_col[:, None], train_after])
+
+    return train, scaler
+
+
 
 def get_implies_operator(implies):
     if implies == 'KleeneDienes':
