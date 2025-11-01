@@ -141,7 +141,7 @@ def main(dataset, feature, implies, p_mean, aggregator_deviation):
         wandb_init = dict(
             project=project,
             name=f"{' | '.join([ax['name'] for ax in kb.config if ax['infos']['training']]) }",
-            entity="albezjelt",
+            entity="ralvaprincipe-university-of-milano-bicocca",
             config={
                 **wandb_hp,
                 **kb.axioms,
@@ -180,4 +180,5 @@ def main(dataset, feature, implies, p_mean, aggregator_deviation):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+    #main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+    main("adult", "sex", "KleeneDienes", 2, 2)
