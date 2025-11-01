@@ -50,7 +50,7 @@ $ python src/inference.py --config ./config.yaml --dataset ./datasets/compas.csv
 
 
 ## **Configuration Guide**
-There quired YAML file need to specify the following parameters:
+The required YAML file need to specify the following parameters:
 ### Data Configuration
 - **target_variable**: Column name containing binary outcomes
 - **sensitive_feature**: Column name of the protected attribute
