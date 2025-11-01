@@ -24,7 +24,7 @@ FEL is a debiasing framework for feature-based binary classification tasks.
 
 **1. Prerequisites**
 1. Install Docker
-2. Create a YAML config file (example: `src/config.yaml`)
+2. Create a YAML config file (example: `./config.yaml`)
 3. Prepare a CSV dataset with headers
 
 **2. Build the Docker image**
@@ -34,14 +34,20 @@ $ docker build -t my_env .
 
 **3. Run the container**
 ```bash
-$ docker run --gpus all -it -v $(pwd)/src:/home/developer/src -w /home/developer my_env bash
+$ docker run --gpus all -it -v $(pwd):/home/developer/ -w /home/developer my_env bash
 ```
 
 **4. Inside the container**
+
+**Train a fair model**:
 ```bash
-$ wandb login
-$ python src/main.py --config ./src/config.yaml --data-path ./data/my_dataset.csv
+$ python src/training.py --config ./config.yaml --dataset ./datasets/compas.csv
 ```
+**Run inference**:
+```bash
+$ python src/inference.py --config ./config.yaml --dataset ./datasets/compas.csv --model ./models/kb.npz
+```
+
 
 ## **Configuration Guide**
 There quired YAML file need to specify the following parameters:
