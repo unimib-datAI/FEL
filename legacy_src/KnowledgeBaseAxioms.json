@@ -1,0 +1,257 @@
+[
+    {
+        "name": "axiom_positive_class",
+        "infos": {
+            "training": true,
+            "weight": 1,
+            "variables": [
+                "positive"
+            ],
+            "splits": [
+                "train",
+                "val",
+                "test"
+            ]
+        }
+    },
+    {
+        "name": "axiom_negative_class",
+        "infos": {
+            "training": true,
+            "weight": 1,
+            "variables": [
+                "negative"
+            ],
+            "splits": [
+                "train",
+                "val",
+                "test"
+            ]
+        }
+    },
+    {
+        "name": "axiom_positive_class_all",
+        "infos": {
+            "training": false,
+            "weight": 0,
+            "variables": [
+                "all"
+            ],
+            "splits": [
+                "train",
+                "val",
+                "test"
+            ]
+        }
+    },
+    {
+        "name": "axiom_negative_class_all",
+        "infos": {
+            "training": false,
+            "weight": 0,
+            "variables": [
+                "all"
+            ],
+            "splits": [
+                "train",
+                "val",
+                "test"
+            ]
+        }
+    },
+    {
+        "name": "axiom_privileged",
+        "infos": {
+            "training": false,
+            "weight": 0,
+            "variables": [
+                "all"
+            ],
+            "splits": [
+                "train",
+                "val",
+                "test"
+            ]
+        }
+    },
+    {
+        "name": "axiom_unprivileged",
+        "infos": {
+            "training": false,
+            "weight": 0,
+            "variables": [
+                "all"
+            ],
+            "splits": [
+                "train",
+                "val",
+                "test"
+            ]
+        }
+    },
+    {
+        "name": "axiom_demographic_parity",
+        "infos": {
+            "training": true,
+            "weight": 2.3,
+            "variables": [
+                "all"
+            ],
+            "splits": [
+                "train",
+                "val",
+                "test"
+            ]
+        }
+    },
+    {
+        "name": "axiom_demographic_parity_oracle",
+        "infos": {
+            "training": false,
+            "weight": 0,
+            "variables": [
+                "all"
+            ],
+            "splits": [
+                "train",
+                "val",
+                "test"
+            ]
+        }
+    },
+    {
+        "name": "axiom_privileged_pos",
+        "infos": {
+            "training": false,
+            "weight": 0,
+            "variables": [
+                "positive"
+            ],
+            "splits": [
+                "train",
+                "val",
+                "test"
+            ]
+        }
+    },
+    {
+        "name": "axiom_unprivileged_pos",
+        "infos": {
+            "training": false,
+            "weight": 0,
+            "variables": [
+                "positive"
+            ],
+            "splits": [
+                "train",
+                "val",
+                "test"
+            ]
+        }
+    },
+    {
+        "name": "axiom_privileged_neg",
+        "infos": {
+            "training": false,
+            "weight": 0,
+            "variables": [
+                "negative"
+            ],
+            "splits": [
+                "train",
+                "val",
+                "test"
+            ]
+        }
+    },
+    {
+        "name": "axiom_unprivileged_neg",
+        "infos": {
+            "training": false,
+            "weight": 0,
+            "variables": [
+                "negative"
+            ],
+            "splits": [
+                "train",
+                "val",
+                "test"
+            ]
+        }
+    },
+    {
+        "name": "axiom_demographic_parity_pos",
+        "infos": {
+            "training": false,
+            "weight": 0,
+            "variables": [
+                "positive"
+            ],
+            "splits": [
+                "train",
+                "val",
+                "test"
+            ]
+        }
+    },
+    {
+        "name": "axiom_demographic_parity_neg",
+        "infos": {
+            "training": false,
+            "weight": 0,
+            "variables": [
+                "negative"
+            ],
+            "splits": [
+                "train",
+                "val",
+                "test"
+            ]
+        }
+    },
+    {
+        "name": "axiom_privileged_guarded",
+        "infos": {
+            "training": false,
+            "weight": 0,
+            "variables": [
+                "all"
+            ],
+            "splits": [
+                "train",
+                "val",
+                "test"
+            ]
+        }
+    },
+    {
+        "name": "axiom_unprivileged_guarded",
+        "infos": {
+            "training": false,
+            "weight": 0,
+            "variables": [
+                "all"
+            ],
+            "splits": [
+                "train",
+                "val",
+                "test"
+            ]
+        }
+    },
+    {
+        "name": "axiom_demographic_parity_sim",
+        "infos": {
+            "training": false,
+            "weight": 0,
+            "variables": [
+                "all"
+            ],
+            "splits": [
+                "train",
+                "val",
+                "test"
+            ]
+        }
+    }
+]
