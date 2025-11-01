@@ -15,4 +15,4 @@ model:
   aggregator_deviation: 2
 
 training:
-  epochs: 2000
+  epochs: 5000

@@ -116,7 +116,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='./src/config.yaml', help='Path to config file')
-    parser.add_argument('--dataset', default='./src/compas.csv', help='Optional override for dataset CSV path')
+    parser.add_argument('--config', default='./config.yaml', help='Path to config file')
+    parser.add_argument('--dataset', default='./datasets/compas.csv', help='Optional override for dataset CSV path')
     args = parser.parse_args()
     main(args)
