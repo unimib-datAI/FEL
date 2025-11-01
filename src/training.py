@@ -23,25 +23,6 @@ def save_kb_weights(kb, filepath: str):
     np.savez(filepath, **weights)
 
 
-def load_kb_weights(kb, filepath: str):
-    data = np.load(filepath, allow_pickle=True)
-    vars = kb.trainable_variables
-    for i, v in enumerate(vars):
-        key = f"var_{i}"
-        if key not in data:
-            raise KeyError(f"Missing weight '{key}' in {filepath}")
-        v.assign(data[key])
-    return kb
-
-
-
-def simple_inference(kb, X, n=5):
-    preds = kb._oracle.predict(X) 
-    preds = np.asarray(preds)
-    print("Sample predictions:", preds[:n])
-    return preds
-
-
 def prepare_dataset(df, target_variable,  protected_attribute):
     Y = df[target_variable].to_numpy()
     X = df.drop(columns=[target_variable]).to_numpy()
@@ -111,12 +92,11 @@ def main(args):
             })
     
     save_kb_weights(kb, "models/kb.npz")
-    kb = load_kb_weights(kb, "models/kb.npz")
-    simple_inference(kb, X_test)
+    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='./config.yaml', help='Path to config file')
-    parser.add_argument('--dataset', default='./datasets/compas.csv', help='Optional override for dataset CSV path')
+    parser.add_argument('--config', help='Path to config file')
+    parser.add_argument('--dataset', help='Optional override for dataset CSV path')
     args = parser.parse_args()
     main(args)

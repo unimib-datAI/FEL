@@ -77,8 +77,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='./config.yaml', help='Path to config file')
-    parser.add_argument('--dataset', default='./datasets/compas.csv', help='Optional override for dataset CSV path')
-    parser.add_argument('--model', default='./models/kb.np', help='Path to trained model')
+    parser.add_argument('--config', help='Path to config file')
+    parser.add_argument('--dataset', help='Optional override for dataset CSV path')
+    parser.add_argument('--model', help='Path to trained model')
     args = parser.parse_args()
     main(args)
