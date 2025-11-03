@@ -1,9 +1,9 @@
-# Fairness Encoding in Logical Tensor Networks (FEL)
+# Fairness Encoding in Logic Tensor Networks (FEL)
 
 FEL is a debiasing framework for feature-based binary classification tasks.
 
 ## **General Description**
-- FEL integrates fairness and accuracy objectives within the Logical Tensor Networks (LTN) framework, where learning is guided by logical axioms rather than direct loss modifications.
+- FEL integrates fairness and accuracy objectives within the Logic Tensor Networks (LTN) framework, where learning is guided by logical axioms rather than direct loss modifications.
 - Through classification axioms, the model learns to correctly represent the relationship between features and target labels, ensuring predictive accuracy.
 - Fairness axioms introduce constraints that promote statistical parity between sensitive groups, embedding fairness directly into the training process.
 - Evaluation combines both perspectives:
