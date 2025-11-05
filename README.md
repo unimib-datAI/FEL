@@ -65,8 +65,11 @@ The required YAML file need to specify the following parameters:
 - **hidden_layer_sizes**: Neural network architecture [list of integers]
 - **implies**: LTN fuzzy implication operator:
   - Options: KleeneDienes, Godel, Reichenbach, Goguen, Luk
-- **p_mean**: Aggregation parameter 
+- **p_mean**: Quantifier aggregation parameter:
+  - Options: [1,3,5,7]
 - **aggregator_deviation**: Deviation control in aggregator 
+- **fairness_weight**: Weight of fairness axioms wrt classification axioms.
+  - Options: [1...3]: A value of 1 gives fairness and classification axioms equal weight, while 3 assigns 3x times importance to fairness satisfiability.
 
 ### Training Configuration
 - **epochs**: Number of training iterations

@@ -13,6 +13,7 @@ model:
   implies: "Godel"  # Options: KleeneDienes, Godel, Reichenbach, Goguen, Luk
   p_mean: 1
   aggregator_deviation: 2
+  fairness_weight: 2
 
 training:
   epochs: 5000
