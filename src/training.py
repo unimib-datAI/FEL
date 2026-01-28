@@ -13,6 +13,7 @@ import argparse
 import os
 import numpy as np
 import tensorflow as tf
+import matplotlib.pyplot as plt
 
 set_seed(42)
 
@@ -75,6 +76,13 @@ def main(args):
         )
 
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+    log_interval = max(1, conf["training"]["epochs"] // 100)
+    epochs_hist = []
+    test_acc_hist = []
+    test_dpr_hist = []
+    test_dpd_hist = []
+    test_eor_hist = []
+    test_eod_hist = []
     pbar = trange(conf["training"]["epochs"], desc="Training", dynamic_ncols=True)
     for epoch in pbar:
         with tf.GradientTape() as tape:
@@ -82,7 +90,7 @@ def main(args):
         grads = tape.gradient(loss, kb.trainable_variables)
         optimizer.apply_gradients(zip(grads, kb.trainable_variables))
 
-        if (epoch+1) % 1000 == 0 or epoch == 0:
+        if (epoch + 1) % log_interval == 0 or epoch == 0:
             logs = kb.get_logs()
             train_acc = logs.get('train_classification_metrics', {}).get('accuracy')
             test_acc = logs.get('test_classification_metrics', {}).get('accuracy')
@@ -92,6 +100,15 @@ def main(args):
             test_dpr = fm.get("test_demographic_parity_ratio")
             train_dpd = fm.get("train_demographic_parity_difference")
             test_dpd = fm.get("test_demographic_parity_difference")
+            test_eor = fm.get("test_equalized_odds_ratio")
+            test_eod = fm.get("test_equalized_odds_difference")
+
+            epochs_hist.append(epoch + 1)
+            test_acc_hist.append(test_acc)
+            test_dpr_hist.append(test_dpr)
+            test_dpd_hist.append(test_dpd)
+            test_eor_hist.append(test_eor)
+            test_eod_hist.append(test_eod)
 
             pbar.set_postfix({
                 "train_acc": f"{train_acc:.3f}",
@@ -102,7 +119,72 @@ def main(args):
                 "test_dpd": f"{test_dpd:.3f}",
             })
 
-      
+    if epochs_hist:
+        os.makedirs("models", exist_ok=True)
+
+        def normalize_series(series):
+            arr = np.array(series, dtype=float)
+            if np.all(np.isnan(arr)):
+                return arr
+            min_v = np.nanmin(arr)
+            max_v = np.nanmax(arr)
+            if max_v - min_v == 0:
+                return np.zeros_like(arr)
+            return (arr - min_v) / (max_v - min_v)
+
+        fig = plt.figure(figsize=(10, 18))
+        gs = fig.add_gridspec(5, 2, height_ratios=[1, 1, 1, 1.1, 1.1])
+
+        ax0 = fig.add_subplot(gs[0, 0])
+        ax1 = fig.add_subplot(gs[0, 1])
+        ax2 = fig.add_subplot(gs[1, 0])
+        ax3 = fig.add_subplot(gs[1, 1])
+        ax4 = fig.add_subplot(gs[2, 0])
+        ax5 = fig.add_subplot(gs[3, :])
+        ax6 = fig.add_subplot(gs[4, :])
+
+        ax0.plot(epochs_hist, test_acc_hist)
+        ax0.set_title("Test Accuracy")
+        ax1.plot(epochs_hist, test_dpr_hist)
+        ax1.set_title("Test Demographic Parity Ratio")
+        ax2.plot(epochs_hist, test_dpd_hist)
+        ax2.set_title("Test Demographic Parity Difference")
+        ax3.plot(epochs_hist, test_eor_hist)
+        ax3.set_title("Test Equalized Odds Ratio")
+        ax4.plot(epochs_hist, test_eod_hist)
+        ax4.set_title("Test Equalized Odds Difference")
+
+        for ax in [ax0, ax1, ax2, ax3, ax4]:
+            ax.grid(True, alpha=0.3)
+            ax.set_xlabel("Epoch")
+
+        ax5.plot(epochs_hist, test_acc_hist, label="test_acc")
+        ax5.plot(epochs_hist, test_dpr_hist, label="test_dpr")
+        ax5.plot(epochs_hist, test_dpd_hist, label="test_dpd")
+        ax5.plot(epochs_hist, test_eor_hist, label="test_eor")
+        ax5.plot(epochs_hist, test_eod_hist, label="test_eod")
+        ax5.set_title("All Test Metrics")
+        ax5.set_xlabel("Epoch")
+        ax5.set_ylabel("Metric Value")
+        ax5.grid(True, alpha=0.3)
+        ax5.legend(loc="center right")
+
+        ax6.plot(epochs_hist, normalize_series(test_acc_hist), label="test_acc_norm")
+        ax6.plot(epochs_hist, normalize_series(test_dpr_hist), label="test_dpr_norm")
+        ax6.plot(epochs_hist, normalize_series(test_dpd_hist), label="test_dpd_norm")
+        ax6.plot(epochs_hist, normalize_series(test_eor_hist), label="test_eor_norm")
+        ax6.plot(epochs_hist, normalize_series(test_eod_hist), label="test_eod_norm")
+        ax6.set_title("All Test Metrics (Normalized)")
+        ax6.set_xlabel("Epoch")
+        ax6.set_ylabel("Normalized Value")
+        ax6.grid(True, alpha=0.3)
+        ax6.legend(loc="center right")
+
+        fig.suptitle("Test Metrics During Training")
+        fig.tight_layout(rect=[0, 0, 1, 0.96])
+        fig.savefig("models/test_metrics.png", dpi=150)
+        plt.close(fig)
+
     save_kb_weights(kb, "models/kb.npz")
     
 
