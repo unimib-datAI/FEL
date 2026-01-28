@@ -53,8 +53,8 @@ def main(args):
     }
 
     label_map = {
-        "positive": conf["data"]["labels"]["positive"],
-        "negative": conf["data"]["labels"]["negative"]
+        "positive": conf["data"]["labels"]["favourable"],
+        "negative": conf["data"]["labels"]["unfavourable"]
     }
 
 
@@ -75,7 +75,7 @@ def main(args):
         )
 
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
-    pbar = trange(conf["training"]["epochs"], desc="Training", ncols=100)
+    pbar = trange(conf["training"]["epochs"], desc="Training", dynamic_ncols=True)
     for epoch in pbar:
         with tf.GradientTape() as tape:
             loss = 1. - kb.train_step()  # type: ignore
@@ -86,11 +86,23 @@ def main(args):
             logs = kb.get_logs()
             train_acc = logs.get('train_classification_metrics', {}).get('accuracy')
             test_acc = logs.get('test_classification_metrics', {}).get('accuracy')
+            
+            fm = logs.get("fairness_metrics", {})
+            train_dpr = fm.get("train_demographic_parity_ratio")
+            test_dpr = fm.get("test_demographic_parity_ratio")
+            train_dpd = fm.get("train_demographic_parity_difference")
+            test_dpd = fm.get("test_demographic_parity_difference")
+
             pbar.set_postfix({
-            'train_acc': f"{train_acc:.3f}",
-            'test_acc':  f"{test_acc:.3f}"
+                "train_acc": f"{train_acc:.3f}",
+                "test_acc": f"{test_acc:.3f}",
+                "train_dpr": f"{train_dpr:.3f}",
+                "test_dpr": f"{test_dpr:.3f}",
+                "train_dpd": f"{train_dpd:.3f}",
+                "test_dpd": f"{test_dpd:.3f}",
             })
-    
+
+      
     save_kb_weights(kb, "models/kb.npz")
     
 
