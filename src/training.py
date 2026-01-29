@@ -11,7 +11,7 @@ import argparse
 import os
 import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
+from metrics_plots import plot_group_metrics, plot_training_metrics
 
 set_seed(42)
 
@@ -123,78 +123,6 @@ def train_loop(kb, epochs, log_interval):
     }
 
 
-def normalize_series(series):
-    arr = np.array(series, dtype=float)
-    if np.all(np.isnan(arr)):
-        return arr
-    min_v = np.nanmin(arr)
-    max_v = np.nanmax(arr)
-    if max_v - min_v == 0:
-        return np.zeros_like(arr)
-    return (arr - min_v) / (max_v - min_v)
-
-
-def plot_metrics(histories, output_path):
-    epochs_hist = histories["epochs"]
-    if not epochs_hist:
-        return
-
-    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
-
-    fig = plt.figure(figsize=(10, 18))
-    gs = fig.add_gridspec(5, 2, height_ratios=[1, 1, 1, 1.1, 1.1])
-
-    ax0 = fig.add_subplot(gs[0, 0])
-    ax1 = fig.add_subplot(gs[0, 1])
-    ax2 = fig.add_subplot(gs[1, 0])
-    ax3 = fig.add_subplot(gs[1, 1])
-    ax4 = fig.add_subplot(gs[2, 0])
-    ax5 = fig.add_subplot(gs[3, :])
-    ax6 = fig.add_subplot(gs[4, :])
-
-    ax0.plot(epochs_hist, histories["test_acc"])
-    ax0.set_title("Test Accuracy")
-    ax1.plot(epochs_hist, histories["test_dpr"])
-    ax1.set_title("Test Demographic Parity Ratio")
-    ax2.plot(epochs_hist, histories["test_dpd"])
-    ax2.set_title("Test Demographic Parity Difference")
-    ax3.plot(epochs_hist, histories["test_eor"])
-    ax3.set_title("Test Equalized Odds Ratio")
-    ax4.plot(epochs_hist, histories["test_eod"])
-    ax4.set_title("Test Equalized Odds Difference")
-
-    for ax in [ax0, ax1, ax2, ax3, ax4]:
-        ax.grid(True, alpha=0.3)
-        ax.set_xlabel("Epoch")
-
-    ax5.plot(epochs_hist, histories["test_acc"], label="test_acc")
-    ax5.plot(epochs_hist, histories["test_dpr"], label="test_dpr")
-    ax5.plot(epochs_hist, histories["test_dpd"], label="test_dpd")
-    ax5.plot(epochs_hist, histories["test_eor"], label="test_eor")
-    ax5.plot(epochs_hist, histories["test_eod"], label="test_eod")
-    ax5.set_title("All Test Metrics")
-    ax5.set_xlabel("Epoch")
-    ax5.set_ylabel("Metric Value")
-    ax5.grid(True, alpha=0.3)
-    ax5.legend(loc="center right")
-
-    ax6.plot(epochs_hist, normalize_series(histories["test_acc"]), label="test_acc_norm")
-    ax6.plot(epochs_hist, normalize_series(histories["test_dpr"]), label="test_dpr_norm")
-    ax6.plot(epochs_hist, normalize_series(histories["test_dpd"]), label="test_dpd_norm")
-    ax6.plot(epochs_hist, normalize_series(histories["test_eor"]), label="test_eor_norm")
-    ax6.plot(epochs_hist, normalize_series(histories["test_eod"]), label="test_eod_norm")
-    ax6.set_title("All Test Metrics (Normalized)")
-    ax6.set_xlabel("Epoch")
-    ax6.set_ylabel("Normalized Value")
-    ax6.grid(True, alpha=0.3)
-    ax6.legend(loc="center right")
-
-    fig.suptitle("Test Metrics During Training")
-    fig.tight_layout(rect=[0, 0, 1, 0.96])
-    fig.savefig(output_path, dpi=150)
-    plt.close(fig)
-
-
 def main(args):
     with open(args.config, 'r') as f:
         conf =  yaml.safe_load(f)
@@ -208,7 +136,17 @@ def main(args):
     log_interval = max(1, epochs // 100)
     histories = train_loop(kb, epochs, log_interval)
 
-    plot_metrics(histories, "models/test_metrics.png")
+    plot_training_metrics(histories, "models/test_metrics.png")
+    plot_group_metrics(
+        y_true=kb._Ytest,
+        y_pred=kb._oracle.predict(kb._Xtest),
+        sensitive=kb._Xtest[:, protected_attribute['index']],
+        pos_label=label_map["positive"],
+        neg_label=label_map["negative"],
+        privileged_value=protected_attribute["privileged"],
+        unprivileged_value=protected_attribute["unprivileged"],
+        output_path="models/test_group_metrics.png"
+    )
     save_kb_weights(kb, "models/kb.npz")
     
 
