@@ -20,6 +20,12 @@ def prepare_dataset(df, target_variable,  protected_attribute):
     return df, X, Y
 
 
+def prepare_dataset_no_gt(df, protected_attribute):
+    X = df.to_numpy()
+    X, _ = StandardScaleData_ExcludingFeature_simple(X, protected_attribute['index'])
+    return df, X
+
+
 def load_model(kb, filepath: str):
     data = np.load(filepath, allow_pickle=True)
     vars = kb.trainable_variables
@@ -55,20 +61,27 @@ def main(args):
         "negative": conf["data"]["labels"]["unfavourable"]
     }
         
-    df, X, Y  = prepare_dataset(df, conf["data"]["target_variable"],  protected_attribute)
+    if args.no_gt:
+        df, X = prepare_dataset_no_gt(df, protected_attribute)
+        Y = None
+    else:
+        df, X, Y = prepare_dataset(df, conf["data"]["target_variable"], protected_attribute)
     impliesOperator = get_implies_operator(conf["model"]["implies"])
     
     ltnOps = LTNOps(impliesOperator, conf["model"]["p_mean"], conf["model"]["aggregator_deviation"])
+    if Y is None:
+        Y = np.full(X.shape[0], label_map["negative"])
+
     kb = KnowledgeBase.KnowledgeBase(
-            X, X,
-            Y, Y,
-            label_map,
-            protected_attribute['privileged'],
-            protected_attribute['unprivileged'],
-            hidden_layer_sizes= conf["model"]["hidden_layer_sizes"],
-            fuzzy_ops=ltnOps,
-            sensitive_feature_index=protected_attribute['index'],
-            config_file='./src/KnowledgeBaseAxioms.json'
+        X, X,
+        Y, Y,
+        label_map,
+        protected_attribute['privileged'],
+        protected_attribute['unprivileged'],
+        hidden_layer_sizes=conf["model"]["hidden_layer_sizes"],
+        fuzzy_ops=ltnOps,
+        sensitive_feature_index=protected_attribute['index'],
+        config_file='./src/KnowledgeBaseAxioms.json'
     )
 
     model_path = args.model or "models/kb.npz"
@@ -76,16 +89,17 @@ def main(args):
     preds = inference(kb, X)
     os.makedirs("models", exist_ok=True)
     pd.DataFrame({"prediction": preds}).to_csv("models/predictions.csv", index=False)
-    plot_group_metrics(
-        y_true=Y,
-        y_pred=preds,
-        sensitive=X[:, protected_attribute['index']],
-        pos_label=label_map["positive"],
-        neg_label=label_map["negative"],
-        privileged_value=protected_attribute["privileged"],
-        unprivileged_value=protected_attribute["unprivileged"],
-        output_path="models/inference_metrics.png"
-    )
+    if not args.no_gt:
+        plot_group_metrics(
+            y_true=Y,
+            y_pred=preds,
+            sensitive=X[:, protected_attribute['index']],
+            pos_label=label_map["positive"],
+            neg_label=label_map["negative"],
+            privileged_value=protected_attribute["privileged"],
+            unprivileged_value=protected_attribute["unprivileged"],
+            output_path="models/inference_metrics.png"
+        )
 
 
 
@@ -94,5 +108,6 @@ if __name__ == "__main__":
     parser.add_argument('--config', help='Path to config file')
     parser.add_argument('--dataset', help='Optional override for dataset CSV path')
     parser.add_argument('--model', help='Path to trained model')
+    parser.add_argument('--no-gt', action='store_true', help='Dataset has no ground truth labels')
     args = parser.parse_args()
     main(args)

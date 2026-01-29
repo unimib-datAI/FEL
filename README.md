@@ -43,10 +43,18 @@ $ docker run --gpus all -it -v $(pwd):/home/developer/ -w /home/developer my_env
 ```bash
 $ python src/training.py --config ./config.yaml --dataset ./datasets/compas.csv
 ```
-**Run inference**:
+**Run inference on data with ground truth**:
 ```bash
 $ python src/inference.py --config ./config.yaml --dataset ./datasets/compas.csv --model ./models/kb.npz
 ```
+**Run inference on data without ground truth**:
+```bash
+$ python src/inference.py --config ./config.yaml --dataset ./datasets/compas.csv --model ./models/kb.npz --no-gt
+```
+
+Inference outputs:
+- `models/predictions.csv` (always)
+- `models/inference_metrics.png` (only when GT is present)
 
 
 ## **Configuration Guide**
@@ -74,21 +82,16 @@ The required YAML file need to specify the following parameters:
 ### Training Configuration
 - **epochs**: Number of training iterations
 
-## Understanding "Positive" and "Negative" Labels
+## Understanding "Favourable" and "Unfavourable" Labels
 
-The choice of positive/negative labels is crucial:
-- **Positive**: The outcome you want to balance fairly across groups
+The choice of favourable/unfavourable labels is crucial:
+- **Favourable**: The outcome you want to balance fairly across groups
   - Example: loan_approved=1 means "approved"
   - Fairness metrics measure this outcome's distribution
-- **Negative**: The alternative outcome
+- **Unfavourable**: The alternative outcome
   - Not directly balanced by fairness constraints
 
 
-Examples:
-
-- Loan approval: positive = 1 (approved), negative = 0 (denied) → approval rates should be similar across groups.
-
-- Disease detection: positive = “has_disease”, negative = “no_disease” → detection rates should be comparable across groups.
 
 ## **License**
 
