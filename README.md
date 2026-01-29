@@ -55,8 +55,8 @@ The required YAML file need to specify the following parameters:
 - **target_variable**: Column name containing binary outcomes
 - **sensitive_feature**: Column name of the protected attribute
 - **labels**:
-  - **positive**: The outcome value to balance fairly across groups
-  - **negative**: The other possible outcome value
+  - **favourable**: The outcome value to balance fairly across groups
+  - **unfavourable**: The other possible outcome value
 - **protected_values**:
   - **privileged**: Value(s) marking the privileged group
   - **unprivileged**: Value(s) marking the unprivileged group
