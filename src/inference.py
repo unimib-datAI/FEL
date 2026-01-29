@@ -6,6 +6,7 @@ import KnowledgeBase
 import numpy as np
 import pandas as pd
 import yaml
+import os
 import argparse
 from metrics_plots import plot_group_metrics
 
@@ -33,7 +34,7 @@ def load_model(kb, filepath: str):
 def inference(kb, X):
     preds = kb._oracle.predict(X)
     preds = np.asarray(preds).reshape(-1)
-    print("Sample predictions:", preds)
+    print("Sample predictions:", preds[:20])
     return preds
 
 
@@ -73,6 +74,8 @@ def main(args):
     model_path = args.model or "models/kb.npz"
     kb = load_model(kb, model_path)
     preds = inference(kb, X)
+    os.makedirs("models", exist_ok=True)
+    pd.DataFrame({"prediction": preds}).to_csv("models/predictions.csv", index=False)
     plot_group_metrics(
         y_true=Y,
         y_pred=preds,
