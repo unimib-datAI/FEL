@@ -1,6 +1,7 @@
 import sys
 
 sys.path.append("../")
+import json
 from sklearn.model_selection import train_test_split
 from utils import StandardScaleData_ExcludingFeature, LTNOps, set_seed, get_implies_operator
 import KnowledgeBase
@@ -20,6 +21,48 @@ def save_kb_weights(kb, filepath: str):
     os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
     weights = {f"var_{i}": v.numpy() for i, v in enumerate(kb.trainable_variables)}
     np.savez(filepath, **weights)
+
+
+def resolve_fairness_config(conf):
+    fairness_conf = conf.get("fairness")
+    if fairness_conf is None:
+        raise ValueError("Missing required config section: fairness")
+    if "enabled" not in fairness_conf:
+        raise ValueError("Missing required fairness field: fairness.enabled")
+    if "weight" not in fairness_conf:
+        raise ValueError("Missing required fairness field: fairness.weight")
+
+    enabled = bool(fairness_conf["enabled"])
+    weight = float(fairness_conf["weight"])
+    return enabled, weight
+
+
+def apply_fairness_axiom_config(conf, axioms_path="./src/KnowledgeBaseAxioms.json"):
+    fairness_enabled, fairness_weight = resolve_fairness_config(conf)
+    if fairness_enabled and fairness_weight <= 0:
+        raise ValueError(
+            "Invalid fairness config: when fairness.enabled is true, fairness.weight must be > 0."
+        )
+
+    with open(axioms_path, "r") as f:
+        axioms = json.load(f)
+
+    target_axiom = "axiom_demographic_parity"
+    found_target = False
+
+    for axiom in axioms:
+        if axiom.get("name") == target_axiom:
+            axiom["infos"]["training"] = fairness_enabled
+            axiom["infos"]["weight"] = fairness_weight if fairness_enabled else 0
+            found_target = True
+
+    if not found_target:
+        raise ValueError(
+            f"Cannot find {target_axiom} in {axioms_path}. Unable to apply fairness YAML config."
+        )
+
+    with open(axioms_path, "w") as f:
+        json.dump(axioms, f, indent=4)
 
 
 def prepare_dataset(df, target_variable,  protected_attribute):
@@ -126,6 +169,8 @@ def train_loop(kb, epochs, log_interval):
 def main(args):
     with open(args.config, 'r') as f:
         conf =  yaml.safe_load(f)
+
+    apply_fairness_axiom_config(conf)
     df = pd.read_csv(args.dataset)
 
     protected_attribute, label_map = build_metadata(conf, df)
